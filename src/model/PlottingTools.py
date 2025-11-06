@@ -33,12 +33,16 @@ def plot_difference(input, prediction, label, iou, dice_score):
 
         false_positives = ((prediction_uint8 == 255) & (label_uint8 == 0))  # FP: Red
         false_negatives = ((prediction_uint8 == 0) & (label_uint8 == 255))  # FN: Blue
+        true_positives = ((prediction_uint8 == 255) & (label_uint8 == 255)).astype(np.uint8)  # TP: White
 
         overlay = np.zeros((*false_positives.shape, 3), dtype=np.uint8)
 
         overlay[..., 0] = false_positives * 255
         overlay[..., 2] = false_negatives * 255  # Blue channel for FN
-        fig, axes = plt.subplots(1, 4, figsize=(16, 5), sharex=True, sharey=True)
+        overlay[..., 0] += true_positives * 255
+        overlay[..., 1] += true_positives * 255
+        overlay[..., 2] += true_positives * 255
+        fig, axes = plt.subplots(1, 3, figsize=(16, 7), sharex=True, sharey=True)
 
         axes[0].imshow(input_uint8, cmap='gray')
         axes[0].set_title("Input")
@@ -46,11 +50,11 @@ def plot_difference(input, prediction, label, iou, dice_score):
         axes[1].imshow(prediction_uint8, cmap='gray')
         axes[1].set_title("Prediction")
 
-        axes[2].imshow(label_uint8, cmap='gray')
-        axes[2].set_title("Label")
+        # axes[2].imshow(label_uint8, cmap='gray')
+        # axes[2].set_title("Label")
 
-        axes[3].imshow(overlay)
-        axes[3].set_title("Difference (FP: Red, FN: Blue)")
+        axes[2].imshow(overlay)
+        axes[2].set_title("Difference (FP: Red, FN: Blue)")
 
         fig.text(0.5, 0.95, f"IoU: {iou:.2f}   Dice Score: {dice_score:.2f}",
          ha='center', va='top', fontsize=14, bbox=dict(facecolor='white', alpha=0.7))
