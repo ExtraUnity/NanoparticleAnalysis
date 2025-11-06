@@ -387,6 +387,15 @@ class UNet(nn.Module):
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
             cbar.ax.tick_params(labelsize=14)  # Increase tick label size
 
-
         plt.tight_layout()
-        plt.show()
+        
+        # Save figure instead of showing (thread-safe)
+        import os
+        from datetime import datetime
+        output_dir = "data/feature_maps"
+        os.makedirs(output_dir, exist_ok=True)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        filename = os.path.join(output_dir, f"{title.replace(' ', '_')}_{timestamp}.png")
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        print(f"Feature map saved to: {filename}")
+        plt.close(fig)
