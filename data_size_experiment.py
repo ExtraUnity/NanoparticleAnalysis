@@ -84,8 +84,7 @@ class DataSizeExperiment:
         train_val_indices = indices[test_size:]
         
         # Further split train+val into validation and available training pool
-        remaining_size = len(train_val_indices)
-        val_size = int(remaining_size * val_split)
+        val_size = int(total_size * val_split)
         val_indices = train_val_indices[:val_size]
         available_train_indices = train_val_indices[val_size:]
         
