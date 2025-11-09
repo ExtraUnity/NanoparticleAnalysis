@@ -8,3 +8,5 @@ class ModelConfig():
         self.with_data_augmentation: bool = with_data_augmentation
         self.test_images_path: str = test_images_path
         self.test_masks_path: str = test_masks_path
+        self.train_subset_size = 0.6
+        self.validation_subset_size = 0.2
