@@ -181,6 +181,18 @@ def get_data_splits(dataset, model_config, input_size, log_file_path=None):
 
     # Augment training data
     data_augmenter = DataAugmenter()
+    drop_fraction = getattr(model_config, "mask_component_drop_fraction", 0.0)
+    min_keep = getattr(model_config, "mask_component_min_keep", 0)
+    noise_fraction = getattr(model_config, "mask_noise_fraction", 0.0)
+    noise_white_prob = getattr(model_config, "mask_noise_white_probability", 0.5)
+    if drop_fraction > 0 or noise_fraction > 0:
+        data_augmenter.corrupt_masks(
+            train_data,
+            component_drop_fraction=drop_fraction,
+            min_components_to_keep=min_keep,
+            noise_fraction=noise_fraction,
+            noise_white_probability=noise_white_prob
+        )
     if model_config.with_data_augmentation:
         train_data = data_augmenter.augment_dataset(train_data)
     else:

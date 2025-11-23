@@ -1,5 +1,7 @@
 from torch.utils.data import Dataset
 from src.model.SegmentationDataset import RepeatDataset, SegmentationDataset
+
+
 class DataAugmenter():
     def __init__(self):
         return 
@@ -59,6 +61,102 @@ class DataAugmenter():
             return image, mask
 
         return transformer
+
+    @staticmethod
+    def _remove_random_components(mask, drop_fraction: float, min_components_to_keep: int):
+        """Remove a random subset of connected components from the mask."""
+        if drop_fraction <= 0:
+            return mask
+
+        import random
+        import numpy as np
+        import torch
+        import cv2
+
+        mask_np = mask.detach().cpu().numpy().squeeze()
+        binary_mask = (mask_np > 0.5).astype(np.uint8)
+
+        num_labels, labels = cv2.connectedComponents(binary_mask)
+        component_ids = list(range(1, num_labels))
+        if not component_ids:
+            return mask
+
+        max_removable = max(len(component_ids) - min_components_to_keep, 0)
+        requested_removals = int(round(drop_fraction * len(component_ids)))
+        remove_count = min(max_removable, requested_removals)
+        if remove_count <= 0:
+            return mask
+
+        remove_ids = random.sample(component_ids, remove_count)
+        binary_mask[np.isin(labels, remove_ids)] = 0
+
+        updated = torch.from_numpy(binary_mask).to(mask.device).type_as(mask)
+        if updated.ndim == 2:
+            updated = updated.unsqueeze(0)
+        return updated
+
+    @staticmethod
+    def _inject_random_noise(mask, noise_fraction: float, white_probability: float):
+        """Flip a fraction of pixels to random foreground/background values."""
+        if noise_fraction <= 0:
+            return mask
+
+        import numpy as np
+        import torch
+
+        mask_np = mask.detach().cpu().numpy().squeeze()
+        total_pixels = mask_np.size
+        noise_pixels = min(total_pixels, int(noise_fraction * total_pixels))
+        if noise_pixels == 0:
+            return mask
+
+        flat = mask_np.reshape(-1)
+        indices = np.random.choice(total_pixels, size=noise_pixels, replace=False)
+        noise_values = (np.random.rand(noise_pixels) < white_probability).astype(flat.dtype)
+        flat[indices] = noise_values
+
+        updated = torch.from_numpy(flat.reshape(mask_np.shape)).to(mask.device).type_as(mask)
+        if updated.ndim == 2:
+            updated = updated.unsqueeze(0)
+        return updated
+
+    @staticmethod
+    def corrupt_masks(dataset: Dataset, component_drop_fraction: float = 0.0, min_components_to_keep: int = 0, noise_fraction: float = 0.0, noise_white_probability: float = 0.5, seed: int = None) -> Dataset:
+        """
+        Permanently corrupt masks by removing connected components and/or injecting random noise.
+
+        Args:
+            dataset: SegmentationDataset or Subset referencing one.
+            component_drop_fraction: fraction of components to remove per mask (0-1).
+            min_components_to_keep: lower bound on remaining components (prevents empty masks).
+            noise_fraction: fraction of pixels to flip to random foreground/background.
+            noise_white_probability: probability that a flipped pixel becomes foreground.
+            seed: optional seed for reproducibility.
+        """
+        if component_drop_fraction <= 0 and noise_fraction <= 0:
+            return dataset
+
+        import numpy as np
+        import random
+
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+
+        if hasattr(dataset, 'dataset') and hasattr(dataset, 'indices'):
+            target_dataset = dataset.dataset
+            target_indices = dataset.indices
+        else:
+            target_dataset = dataset
+            target_indices = range(len(dataset))
+
+        for idx in target_indices:
+            mask = target_dataset.masks[idx]
+            mask = DataAugmenter._remove_random_components(mask, component_drop_fraction, min_components_to_keep)
+            mask = DataAugmenter._inject_random_noise(mask, noise_fraction, noise_white_probability)
+            target_dataset.masks[idx] = mask
+
+        return dataset
 
     
     def augment_dataset(self, dataset: Dataset, augmentations=[True,True,False,False,True,True,False]) -> Dataset:
