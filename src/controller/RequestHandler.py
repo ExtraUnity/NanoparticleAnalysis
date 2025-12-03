@@ -17,11 +17,13 @@ class RequestHandler:
             ensure_torch_ready()
             from src.model.UNet import UNet
             from src.model.ImageSegmenter import ImageSegmenter
-            self.unet = UNet(pre_loaded_model_path=f"src/data/model/{model_name}")
+            if model_name is not None:
+                self.unet = UNet(pre_loaded_model_path=f"src/data/model/{model_name}")
+            else:
+                self.unet = UNet()
             self.segmenter = ImageSegmenter(self.unet)
             self.model_ready_event.set()
             print("Model ready")
-
         threading.Thread(target=load, daemon=True).start()
         
     def process_request_train(self, model_config, log_dir, stop_training_event = None, loss_callback = None, test_callback = None):  
