@@ -2,6 +2,7 @@ import threading
 import os
 from src.model.SegmentationAnalyzer import SegmentationAnalyzer
 from src.model.PlottingTools import *
+from src.shared.torch_coordinator import ensure_torch_ready
 
 class RequestHandler:
     def __init__(self, pre_loaded_model_name=None):
@@ -13,10 +14,9 @@ class RequestHandler:
 
     def load_model_async(self, model_name):
         def load():            
-            import torchvision
+            ensure_torch_ready()
             from src.model.UNet import UNet
             from src.model.ImageSegmenter import ImageSegmenter
-
             self.unet = UNet(pre_loaded_model_path=f"src/data/model/{model_name}")
             self.segmenter = ImageSegmenter(self.unet)
             self.model_ready_event.set()
@@ -70,6 +70,7 @@ class RequestHandler:
             return results[:-1]  # Return without stats
 
     def process_request_load_model(self, model_path):
+        ensure_torch_ready()
         self.model_ready_event.wait()
         self.unet.load_model(model_path)
         self.segmenter.unet = self.unet

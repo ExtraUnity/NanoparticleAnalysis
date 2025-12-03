@@ -24,6 +24,7 @@ from src.gui.TableData import TableData
 from src.shared.ModelTrainingStats import ModelTrainingStats
 from PIL import Image
 from PIL.ImageQt import ImageQt
+import time
 from src.gui.windows.MessageBoxes import *
 from src.model.PlottingTools import plot_loss, plot_difference
 from src.shared.Formatters import _truncate
@@ -31,6 +32,7 @@ from src.shared.ParticleImage import ParticleImage
 from src.shared.IOFunctions import validate_file_extension
 from src.shared.EvaluationResult import EvaluationResult
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from src.shared.torch_coordinator import ensure_torch_ready
 
 class SegmentationWorker(QObject):
     """Worker that runs segmentation via controller.safe_request in a separate thread."""
@@ -57,6 +59,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     errorOccurred = QtCore.pyqtSignal(str, object)
     segmentation_finished = pyqtSignal(object)
     segmentation_failed = pyqtSignal(str)
+    hardware_status_ready = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -93,6 +96,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_segmentation.setScene(self.plot_segmentation_scene)
         self.plot_graph_layout = QVBoxLayout(self.plot_histogram)
         self.plot_histogram.setLayout(self.plot_graph_layout)
+        # Segmentation timer label placed under the run button
+        self.segmentation_time_label = QLabel(self.centralwidget)
+        self.segmentation_time_label.setGeometry(QtCore.QRect(60, 130, 181, 20))
+        self.segmentation_time_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.segmentation_time_label.setText("")
+        self._segmentation_start_time = None
+        # Hardware status label (initially hidden until torch is ready)
+        self.hardware_status_label = QLabel(self.centralwidget)
+        self.hardware_status_label.setGeometry(QtCore.QRect(60, 155, 181, 20))
+        self.hardware_status_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.hardware_status_label.setText("Running on: Initializing...")
 
 
         # Other connections
@@ -117,6 +131,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Connect signals to handlers
         self.segmentation_finished.connect(self._on_segmentation_finished)
         self.segmentation_failed.connect(self._on_segmentation_failed)
+        self.hardware_status_ready.connect(self._update_hardware_status_label)
+        # Start background hardware check once torch preload is finished
+        threading.Thread(target=self._probe_hardware_status, daemon=True).start()
 
 
     def handle_error(self, message, handler=None):
@@ -279,7 +296,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             self.clear_image()
             self.image_path = self.file_path_image
-            
+            self.segmentation_time_label.setText("")
+
             res = self.safe_request(Command.LOAD_IMAGE, self.file_path_image) 
             if res is None:
                 return
@@ -351,6 +369,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if (self.image_path == None):
             messageBox(self, "Segmentation failed: No image found")
             return
+        self._segmentation_start_time = time.perf_counter()
+        self.segmentation_time_label.setText("Segmenting...")
         # Run segmentation in background thread; helper handles wiring/cleanup
         self.set_ui_busy(True)
         self._start_segmentation_thread(Command.SEGMENT, self._on_segmentation_finished,self.image, "data/statistics")
@@ -467,6 +487,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_segmentation_finished(self, res):
         # Re-enable UI
         self.set_ui_busy(False)
+        if self._segmentation_start_time is not None:
+            elapsed = time.perf_counter() - self._segmentation_start_time
+            self.segmentation_time_label.setText(f"Segmentation time: {elapsed:.2f}s")
+            self._segmentation_start_time = None
         if res is None:
             return
         
@@ -480,7 +504,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _on_segmentation_failed(self, message):
         self.set_ui_busy(False)
+        self.segmentation_time_label.setText("")
+        self._segmentation_start_time = None
         messageBox(self, f"Segmentation failed: {message}")
+
+    def _probe_hardware_status(self):
+        """Run in a background thread to avoid blocking UI while torch loads."""
+        try:
+            ensure_torch_ready()  # Wait until torch preload thread finishes
+            import torch
+            device_label = "GPU" if torch.cuda.is_available() else "CPU"
+            status_text = f"Running on: {device_label}"
+        except Exception as exc:
+            status_text = "Hardware status unavailable"
+            print(f"Hardware status check failed: {exc}")
+        self.hardware_status_ready.emit(status_text)
+
+    def _update_hardware_status_label(self, text: str):
+        self.hardware_status_label.setText(text)
             
 
     def on_load_model_clicked(self):        
