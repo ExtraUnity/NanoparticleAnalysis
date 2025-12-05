@@ -10,15 +10,15 @@ It combines a U-Net–based deep learning model with an intuitive graphical inte
 NanoAnalyzer is developed by Christian Vedel Petersen & Nikolaj Nguyen originally as part of their bachelor's thesis at the Technical University of Denmark, and later as part of a study on **accessible deep learning for automated segmentation of supported nanoparticles in electron microscopy**.
 
 ## Table of Contents
-1. [Installation Guide](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#installation-guide)
-2. [User Guide](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#user-guide)
-   - [Segmenting Images](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#segmenting-images)
-   - [Batch Processing](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#batch-processing)
-   - [Viewing Results and Statistics](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#viewing-results-and-statistics)
-   - [Training a New Model](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#training-a-new-model)
-   - [Data Format for Training](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#data-format-for-training)
-4. [License](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#license)
-5. [Contact](https://github.com/ExtraUnity/NanoparticleAnalysis/main/README.md#contact)
+1. [Installation Guide](https://github.com/ExtraUnity/NanoparticleAnalysis#installation-guide)
+2. [User Guide](https://github.com/ExtraUnity/NanoparticleAnalysis#user-guide)
+   - [Segmenting Images](https://github.com/ExtraUnity/NanoparticleAnalysis#segmenting-images)
+   - [Batch Processing](https://github.com/ExtraUnity/NanoparticleAnalysis#batch-processing)
+   - [Viewing Results and Statistics](https://github.com/ExtraUnity/NanoparticleAnalysis#viewing-results-and-statistics)
+   - [Training a New Model](https://github.com/ExtraUnity/NanoparticleAnalysis#training-a-new-model)
+   - [Data Format for Training](https://github.com/ExtraUnity/NanoparticleAnalysis#data-format-for-training)
+4. [License](https://github.com/ExtraUnity/NanoparticleAnalysis#license)
+5. [Contact](https://github.com/ExtraUnity/NanoparticleAnalysis#contact)
 
 
 
