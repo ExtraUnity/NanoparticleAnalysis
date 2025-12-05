@@ -63,13 +63,9 @@ To run the application from the source code, run ```python main.py```
    - Be default, the **pretrained model** is loaded.
    - You can later switch to a **custom-trained model** and load it by pressing **Model > Load Model** (see [Training a New Model](https://github.com/ExtraUnity/NanoparticleAnalysis#training-a-new-model))
      
-      <img width="443" height="262" alt="image" src="https://github.com/user-attachments/assets/9f9ea52c-35e3-467a-8b46-9770b3302de1" />
-
 3. Run segmentation
    - Simply click **Run Segmentation** to segment the image
      
-      <img width="443" height="262" alt="image" src="https://github.com/user-attachments/assets/95578d03-67b5-4b7e-8e4f-6dbe0a012d27" />
-
 4. View results
    - After segmentation, the program will display the segmentation and write the statistics information to the folder `data/<name_of_image>/` (from the same directory as the .exe file)
    - The segmentation can be viewed side by side in a fullscreen window by pressing **Fullscreen Image**
