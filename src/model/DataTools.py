@@ -189,7 +189,7 @@ def get_dataloaders(dataset: Dataset, model_config: ModelConfig, input_size: tup
     if torch.cuda.is_available():
         train_dataloader = DataLoader(train_data, batch_size=32, shuffle=True, drop_last=True, num_workers=24)
     else:
-        train_dataloader = DataLoader(train_data, batch_size=8, shuffle=True, drop_last=True)
+        train_dataloader = DataLoader(train_data, batch_size=8, shuffle=True, drop_last=True, num_workers=2)
     val_dataloader = DataLoader(val_data, batch_size=1, shuffle=True, drop_last=True)
     test_dataloader = DataLoader(test_data, batch_size=1)
     return (train_dataloader, val_dataloader, test_dataloader)
@@ -292,7 +292,7 @@ def load_image_as_tensor(image_path: str):
         tensor = TF.resize(tensor, 1024)
     return tensor
 
-def binarize_segmentation_output(segmented_image, high_thresh=0.85, mean_prob_thresh=0.5):
+def binarize_segmentation_output(segmented_image, high_thresh=0.85):
     """
     Post-process U-Net probabilities by seeding on high-confidence pixels
     and growing into lower-confidence regions.

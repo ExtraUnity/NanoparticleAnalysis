@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 from PyQt5.QtWidgets import QApplication
@@ -11,6 +12,9 @@ def preload_torch():
         from ncempy.io import dm
         import numpy as np
         _ = torch.Tensor([0])  # Force lazy CUDA init
+        torch.set_num_threads(min(1, os.cpu_count()//4)*3)      
+        torch.set_num_interop_threads(1)
+
     except Exception as e:
         print(f"Error during torch preloading: {e}")
     finally:

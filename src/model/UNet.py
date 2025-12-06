@@ -174,8 +174,8 @@ class UNet(nn.Module):
     def train_model(self, training_dataloader: DataLoader, validation_dataloader: DataLoader, epochs: int, learningRate: float, model_name: str, with_early_stopping: bool, loss_function: str, scheduler_type: str = "plateau", stop_training_event: Event = None, loss_callback = None):
         self.to(self.device)
 
-        self.optimizer = torch.optim.Adam(self.parameters(), learningRate, weight_decay=1e-4)
-        
+        self.optimizer = torch.optim.Adam(self.parameters(), learningRate, weight_decay=1e-4) 
+
         # Configure learning rate scheduler
         self.scheduler = self._configure_scheduler(scheduler_type=scheduler_type)
         
