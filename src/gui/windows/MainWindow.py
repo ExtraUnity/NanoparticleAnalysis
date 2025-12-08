@@ -238,6 +238,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def on_train_model_custom_data_clicked(self):
         self.train_model_window = TrainModelWindow(self.update_train_model_values_signal, self.show_testing_difference_signal)
+        try:
+            self.train_model_window.train_model_signal.disconnect()
+        except TypeError:
+            pass
         self.train_model_window.train_model_signal.connect(self.train_model_custom_data)
         self.train_model_window.show()
 

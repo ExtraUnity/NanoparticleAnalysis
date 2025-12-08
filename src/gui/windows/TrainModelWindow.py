@@ -22,8 +22,16 @@ class TrainModelWindow(QMainWindow, Ui_TrainModel):
         
         self.training_loss_values = []
         self.validation_loss_values = []
-        
+        try:
+            update_data_signal.disconnect()
+        except TypeError as e:
+            pass
         update_data_signal.connect(self.update_loss_values)
+        try:
+            show_testing_difference_signal.disconnect()
+        except TypeError as e:
+            pass
+
         show_testing_difference_signal.connect(self.show_testing_difference)
         self.training_finished_signal.connect(self.on_training_finished)
         

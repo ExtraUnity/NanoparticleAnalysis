@@ -325,6 +325,7 @@ def binarize_segmentation_output(segmented_image, high_thresh=0.85):
     Returns:
         numpy.ndarray: Binary mask [1, H, W].
     """    
+    segmented_image = segmented_image.detach().cpu().numpy()
     # Step 1: Extract probabilities and compute confidence
     fg_prob, confidence_margin = _extract_probabilities(segmented_image)
     
